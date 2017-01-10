@@ -10,7 +10,7 @@ appControllers.controller('loginCtrl', ['$scope','$rootScope', '$state', 'authen
 
         $scope.onSubmit = function(){
 
-            authenticationService.login($scope.input, function(err, data){
+            authenticationService.login($scope.credentials, function(err, data){
                 if (err) {
                     console.log(err);
                     $scope.message = "You have invalid login, please fill in all required information";

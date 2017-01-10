@@ -1,5 +1,5 @@
 appServices.factory('locationsService', [
-	function() {
+	function () {
 
 		var query = {
 			from: null,
@@ -10,7 +10,7 @@ appServices.factory('locationsService', [
 			destinations = null;
 
 		//--------------------------------------------------------------------
-		var getOriginsQuery = function() {
+		var getOriginsQuery = function () {
 
 			var originsQuery = {};
 			if (query.to) originsQuery.to = query.to;
@@ -18,20 +18,23 @@ appServices.factory('locationsService', [
 			return originsQuery;
 		};
 
-		var originsPromiseParams = function(fullfill, reject) {	
+		var originsPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/locations/origins',
 				method: 'GET',
 				data: getOriginsQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var originsPromise = null;
 
 		//--------------------------------------------------------------------
-		var getDestinationsQuery = function() {
+		var getDestinationsQuery = function () {
 
 			var destinationsQuery = {};
 			if (query.from) destinationsQuery.from = query.from;
@@ -39,13 +42,16 @@ appServices.factory('locationsService', [
 			return destinationsQuery;
 		};
 
-		var destinationsPromiseParams = function(fullfill, reject) {
+		var destinationsPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/locations/destinations',
 				method: 'GET',
 				data: getDestinationsQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
@@ -54,9 +60,9 @@ appServices.factory('locationsService', [
 		//--------------------------------------------------------------------	
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
-				
+			getQuery: function () { return query; },
+			setQuery: function (q) {
+
 				if (q.to && q.to !== query.to) {
 					query.to = q.to;
 					origins = originsPromise = null;
@@ -68,7 +74,7 @@ appServices.factory('locationsService', [
 				}
 			},
 
-			getOriginsPromise: function() {
+			getOriginsPromise: function () {
 
 				if (!originsPromise || !origins) {
 
@@ -81,7 +87,7 @@ appServices.factory('locationsService', [
 
 				return originsPromise;
 			},
-			getDestinationsPromise: function() {
+			getDestinationsPromise: function () {
 				if (!destinationsPromise || !destinations) {
 
 					destinationsPromise = new Promise(destinationsPromiseParams);
@@ -94,7 +100,7 @@ appServices.factory('locationsService', [
 				return destinationsPromise;
 			},
 
-			getOrigins: function(params, callback) {
+			getOrigins: function (params, callback) {
 
 				this.setQuery(params);
 
@@ -104,7 +110,7 @@ appServices.factory('locationsService', [
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
-			getDestinations: function(params, callback) {
+			getDestinations: function (params, callback) {
 
 				this.setQuery(params);
 

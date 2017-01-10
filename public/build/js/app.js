@@ -122,9 +122,9 @@ app.run(['$rootScope', '$transitions', '$location', 'authenticationService',
 var appComponents = angular.module("appComponents",['appControllers']);
 var appControllers = angular.module("appControllers",[]);
 function getRandomInt(min, max) {
-  	min = Math.ceil(min);
-  	max = Math.floor(max);
-  	return Math.floor(Math.random() * (max - min)) + min;
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min)) + min;
 }
 function selectRandom(arr) {
 
@@ -132,11 +132,11 @@ function selectRandom(arr) {
 	return arr[index];
 }
 function formatNumberLength(num, length) {
-    var r = "" + num;
-    while (r.length < length) {
-        r = "0" + r;
-    }
-    return r;
+	var r = "" + num;
+	while (r.length < length) {
+		r = "0" + r;
+	}
+	return r;
 }
 function countDigits(num) {
 	var d = 0, temp = num;
@@ -149,7 +149,7 @@ function countDigits(num) {
 }
 
 function generateTask(index, origin, destination, departure, arrival) {
-	
+
 	let flight = {
 		_id: formatNumberLength(index, 8),
 		origin: origin,
@@ -165,9 +165,9 @@ function generateTask(index, origin, destination, departure, arrival) {
 			price: 1700000,
 			capacity: 50
 		}, {
-		  	_class: "M",
-		  	price: 1000000,
-		  	capacity: 200
+			_class: "M",
+			price: 1000000,
+			capacity: 200
 		}, {
 			_class: "N",
 			price: 700000,
@@ -183,41 +183,47 @@ function generateTask(index, origin, destination, departure, arrival) {
 		}]
 	};
 
-	return function() {
+	return function () {
 
 		$.ajax({
 			url: '/api/flights/BOT' + flight._id,
 			method: 'PUT',
 			data: flight,
 			succes: (response) => console.log('generated:', response.result),
-			error: (xhr, textStatus, errorThrown) => console.log(xhr.responseJSON)
-		});	
+			error: (xhr, textStatus, errorThrown) => console.log(xhr.responseJSON),
+			headers: {
+				Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+			}
+		});
 	};
 }
 
 
-var generateData = function(nDate) {
+var generateData = function (nDate) {
 	if (!async) return console.log('please install async');
 	if (!$) return console.log('please install jquery');
 
 	async.waterfall([
-		function(callback) {
+		function (callback) {
 
 			var promise = new Promise((fulfill, reject) => {
 				$.ajax({
 					url: '/api/locations',
 					method: 'GET',
 					success: fulfill,
-					error: reject
+					error: reject,
+					headers: {
+						Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+					}
 				});
 			});
 
 			promise
 				.then((response) => callback(null, response.result))
 				.catch((xhr, textStatus, errorThrown) => callback(xhr.responseJSON));
-			
+
 		},
-		function(locations, callback) {
+		function (locations, callback) {
 			var timeSeed = new Date(),
 				interval = 12, //hours
 				nLoop = 24 * nDate / interval;
@@ -246,8 +252,8 @@ var generateData = function(nDate) {
 
 			callback(null, tasks);
 		},
-		function(tasks, callback) {
-			
+		function (tasks, callback) {
+
 			tasks.forEach((task) => {
 				task();
 			});
@@ -639,7 +645,7 @@ appControllers.controller('loginCtrl', ['$scope','$rootScope', '$state', 'authen
 
         $scope.onSubmit = function(){
 
-            authenticationService.login($scope.input, function(err, data){
+            authenticationService.login($scope.credentials, function(err, data){
                 if (err) {
                     console.log(err);
                     $scope.message = "You have invalid login, please fill in all required information";
@@ -1198,6 +1204,8 @@ appServices.factory('authenticationService', ['validateService', '$http', '$wind
 
                 promise
                     .then((response) => {
+                        console.log('Response:');
+                        console.log(response);
                         this.saveToken(response.token);
                         callback(null, response.data);
                     })
@@ -1209,7 +1217,7 @@ appServices.factory('authenticationService', ['validateService', '$http', '$wind
     }
 ]);
 appServices.factory('bookingService', ['validateService',
-	function(validateService) {
+	function (validateService) {
 
 		var reviewingBookingId = null;
 		var config = {
@@ -1220,11 +1228,11 @@ appServices.factory('bookingService', ['validateService',
 				childrenCount: 0,
 				infantsCount: 0,
 				adults: [{
-								title: null,
-								firstName: null,
-								lastName: null,
-								dateOfBirth: null
-							}],
+					title: null,
+					firstName: null,
+					lastName: null,
+					dateOfBirth: null
+				}],
 				children: [],
 				infants: []
 			},
@@ -1250,12 +1258,12 @@ appServices.factory('bookingService', ['validateService',
 		};
 
 		//--------------------------------------------------------------------
-		var reallocatePassengers = function(passengers, realLength) {
+		var reallocatePassengers = function (passengers, realLength) {
 
 			if (passengers.length < realLength) {
 
 				var itemCount = realLength - passengers.length;
-				for(let i = 0; i < itemCount; ++i) {
+				for (let i = 0; i < itemCount; ++i) {
 					passengers.push({
 						title: null,
 						firstName: null,
@@ -1263,37 +1271,37 @@ appServices.factory('bookingService', ['validateService',
 						dateOfBirth: null
 					});
 				}
-	
+
 			} else if (passengers.length > realLength)
 				passengers.slice(0, realLength);
 		};
 
-		var evaluatePrice = function(route) {
+		var evaluatePrice = function (route) {
 			if (!route || !route.flight || !route.class) return 0;
 
 			var seatConfig = route.flight.seats.find((s) => s._class === route.class._id),
 				price = seatConfig.price;
 
 			var passengers = config.passengers,
-				passengersFactor = passengers.adultsCount + passengers.childrenCount*0.75;
-		
+				passengersFactor = passengers.adultsCount + passengers.childrenCount * 0.75;
+
 			return price * passengersFactor;
 		};
 
 		//--------------------------------------------------------------------
 		var service = {
-			getConfig: function() {
+			getConfig: function () {
 				return config;
 			},
 			//======================================================
-			revaluatePrice: function() {
+			revaluatePrice: function () {
 				var forwardPrice = evaluatePrice(config.forwardRoute),
 					returnPrice = evaluatePrice(config.returnRoute);
 
 				config.totalPrice = forwardPrice + returnPrice;
 			},
 			//======================================================
-			setBasicConfig: function(cfg) {
+			setBasicConfig: function (cfg) {
 				config.roundTrip = cfg.roundTrip;
 				config.promotion = cfg.promotion;
 
@@ -1308,7 +1316,7 @@ appServices.factory('bookingService', ['validateService',
 				}
 			},
 			//======================================================
-			setForwardRoute: function(route) {
+			setForwardRoute: function (route) {
 				if (route) {
 
 					config.forwardRoute.flight = route.flight || null;
@@ -1317,7 +1325,7 @@ appServices.factory('bookingService', ['validateService',
 					this.revaluatePrice();
 				}
 			},
-			setReturnRoute: function(route) {
+			setReturnRoute: function (route) {
 				if (route) {
 
 					config.returnRoute.flight = route.flight || null;
@@ -1327,7 +1335,7 @@ appServices.factory('bookingService', ['validateService',
 				}
 			},
 			//======================================================
-			updatePassengers: function(newPassengers) {
+			updatePassengers: function (newPassengers) {
 				for (let i = 0; i < newPassengers.adults.length; ++i) {
 					config.passengers.adults[i] = {
 						title: newPassengers.adults[i].title,
@@ -1349,11 +1357,11 @@ appServices.factory('bookingService', ['validateService',
 						title: newPassengers.infants[i].title,
 						firstName: newPassengers.infants[i].firstName,
 						lastName: newPassengers.infants[i].lastName,
-						dateOfBirth: new Date(newPassengers.infants [i].dateOfBirth.getTime())
+						dateOfBirth: new Date(newPassengers.infants[i].dateOfBirth.getTime())
 					};
 				}
 			},
-			updateContact: function(newContact) {
+			updateContact: function (newContact) {
 				config.contact.title = newContact.title || null;
 				config.contact.firstName = newContact.firstName || null;
 				config.contact.lastName = newContact.lastName || null;
@@ -1364,9 +1372,9 @@ appServices.factory('bookingService', ['validateService',
 				config.contact.note = newContact.note || null;
 			},
 			//======================================================
-			getReviewId: function() { return reviewingBookingId; },
-			setReviewId: function(rv) { reviewingBookingId = rv; },
-			getBooking: function(id, callback) {
+			getReviewId: function () { return reviewingBookingId; },
+			setReviewId: function (rv) { reviewingBookingId = rv; },
+			getBooking: function (id, callback) {
 
 				reviewingBookingId = id;
 
@@ -1375,7 +1383,10 @@ appServices.factory('bookingService', ['validateService',
 						url: '/api/bookings/' + reviewingBookingId,
 						method: 'GET',
 						success: fulfill,
-						error: reject
+						error: reject,
+						headers: {
+							Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+						}
 					});
 				});
 
@@ -1384,7 +1395,7 @@ appServices.factory('bookingService', ['validateService',
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
 			//======================================================
-			makeBooking: function(callback) {
+			makeBooking: function (callback) {
 
 				var requestBody = {};
 
@@ -1419,7 +1430,10 @@ appServices.factory('bookingService', ['validateService',
 						contentType: 'application/json',
 						data: JSON.stringify(requestBody),
 						success: fulfill,
-						error: reject
+						error: reject,
+						headers: {
+							Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+						}
 					});
 				});
 
@@ -1433,7 +1447,7 @@ appServices.factory('bookingService', ['validateService',
 	}
 ]);
 appServices.factory('flightsService', [
-	function() {
+	function () {
 
 		var query = {
 			roundTrip: true,
@@ -1447,7 +1461,7 @@ appServices.factory('flightsService', [
 			returnFlights = null;
 
 		//--------------------------------------------------------------------
-		var getForwardRouteQuery = function() {
+		var getForwardRouteQuery = function () {
 
 			var forwardQuery = {};
 			if (query.origin) forwardQuery.origin = query.origin;
@@ -1457,20 +1471,23 @@ appServices.factory('flightsService', [
 			return forwardQuery;
 		};
 
-		var forwardRoutePromiseParams = function(fullfill, reject) {
+		var forwardRoutePromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/flights',
 				method: 'GET',
 				data: getForwardRouteQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var forwardRoutePromise = null;
 
 		//--------------------------------------------------------------------
-		var getReturnRouteQuery = function() {
+		var getReturnRouteQuery = function () {
 
 			var returnQuery = {};
 			if (query.origin) returnQuery.destination = query.origin;
@@ -1480,36 +1497,39 @@ appServices.factory('flightsService', [
 			return returnQuery;
 		};
 
-		var returnRoutePromiseParams = function(fullfill, reject) {
+		var returnRoutePromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/flights',
 				method: 'GET',
 				data: getReturnRouteQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var returnRoutePromise = null;
 
 		//--------------------------------------------------------------------
-		
+
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
+			getQuery: function () { return query; },
+			setQuery: function (q) {
 
-				query.roundTrip 	= q.roundTrip;
-				query.origin 		= q.origin 		|| null;
-				query.destination 	= q.destination	|| null;
-				query.departing 	= q.departing 	|| null;
-				query.returning 	= q.returning 	|| null;
+				query.roundTrip = q.roundTrip;
+				query.origin = q.origin || null;
+				query.destination = q.destination || null;
+				query.departing = q.departing || null;
+				query.returning = q.returning || null;
 				//--------------
 				forwardFlights = forwardRoutePromise = null;
 				returnFlights = returnRoutePromise = null;
 			},
 
-			getForwardRoutePromise: function() {
+			getForwardRoutePromise: function () {
 
 				if (!forwardRoutePromise || !forwardFlights) {
 
@@ -1522,10 +1542,10 @@ appServices.factory('flightsService', [
 
 				return forwardRoutePromise;
 			},
-			getReturnRoutePromise: function() {
+			getReturnRoutePromise: function () {
 
 				if (!query.roundTrip)
-					return Promise.resolve({result: null});
+					return Promise.resolve({ result: null });
 
 				if (!returnRoutePromise || !returnFlights) {
 
@@ -1538,7 +1558,7 @@ appServices.factory('flightsService', [
 
 				return returnRoutePromise;
 			},
-			getForwardFlights: function(callback) {
+			getForwardFlights: function (callback) {
 
 				if (forwardFlights) return callback(null, forwardFlights);
 
@@ -1546,7 +1566,7 @@ appServices.factory('flightsService', [
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
-			getReturnFlights: function(callback) {
+			getReturnFlights: function (callback) {
 				this.getReturnRoutePromise()
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
@@ -1557,7 +1577,7 @@ appServices.factory('flightsService', [
 	}
 ]);
 appServices.factory('locationsService', [
-	function() {
+	function () {
 
 		var query = {
 			from: null,
@@ -1568,7 +1588,7 @@ appServices.factory('locationsService', [
 			destinations = null;
 
 		//--------------------------------------------------------------------
-		var getOriginsQuery = function() {
+		var getOriginsQuery = function () {
 
 			var originsQuery = {};
 			if (query.to) originsQuery.to = query.to;
@@ -1576,20 +1596,23 @@ appServices.factory('locationsService', [
 			return originsQuery;
 		};
 
-		var originsPromiseParams = function(fullfill, reject) {	
+		var originsPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/locations/origins',
 				method: 'GET',
 				data: getOriginsQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var originsPromise = null;
 
 		//--------------------------------------------------------------------
-		var getDestinationsQuery = function() {
+		var getDestinationsQuery = function () {
 
 			var destinationsQuery = {};
 			if (query.from) destinationsQuery.from = query.from;
@@ -1597,13 +1620,16 @@ appServices.factory('locationsService', [
 			return destinationsQuery;
 		};
 
-		var destinationsPromiseParams = function(fullfill, reject) {
+		var destinationsPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/locations/destinations',
 				method: 'GET',
 				data: getDestinationsQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
@@ -1612,9 +1638,9 @@ appServices.factory('locationsService', [
 		//--------------------------------------------------------------------	
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
-				
+			getQuery: function () { return query; },
+			setQuery: function (q) {
+
 				if (q.to && q.to !== query.to) {
 					query.to = q.to;
 					origins = originsPromise = null;
@@ -1626,7 +1652,7 @@ appServices.factory('locationsService', [
 				}
 			},
 
-			getOriginsPromise: function() {
+			getOriginsPromise: function () {
 
 				if (!originsPromise || !origins) {
 
@@ -1639,7 +1665,7 @@ appServices.factory('locationsService', [
 
 				return originsPromise;
 			},
-			getDestinationsPromise: function() {
+			getDestinationsPromise: function () {
 				if (!destinationsPromise || !destinations) {
 
 					destinationsPromise = new Promise(destinationsPromiseParams);
@@ -1652,7 +1678,7 @@ appServices.factory('locationsService', [
 				return destinationsPromise;
 			},
 
-			getOrigins: function(params, callback) {
+			getOrigins: function (params, callback) {
 
 				this.setQuery(params);
 
@@ -1662,7 +1688,7 @@ appServices.factory('locationsService', [
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
-			getDestinations: function(params, callback) {
+			getDestinations: function (params, callback) {
 
 				this.setQuery(params);
 
@@ -1698,26 +1724,29 @@ appServices.factory('testService', [
 	}
 ]);
 appServices.factory('travelClassesService', [
-	function() {
+	function () {
 
 		var query = {};
 		var travelClasses = null;
 
 		//--------------------------------------------------------------------
-		var getTravelClassesQuery = function() {
+		var getTravelClassesQuery = function () {
 
 			var query = {};
 
 			return query;
 		};
 
-		var travelClassesPromiseParams = function(fullfill, reject) {	
+		var travelClassesPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/travelclasses',
 				method: 'GET',
 				data: getTravelClassesQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
@@ -1726,13 +1755,13 @@ appServices.factory('travelClassesService', [
 		//--------------------------------------------------------------------	
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
+			getQuery: function () { return query; },
+			setQuery: function (q) {
 
 				travelClasses = travelClassesPromise = null;
 			},
 
-			getTravelClassesPromise: function() {
+			getTravelClassesPromise: function () {
 
 				if (!travelClassesPromise || !travelClasses) {
 
@@ -1743,10 +1772,10 @@ appServices.factory('travelClassesService', [
 						.catch((xhr, textStatus, errorThrown) => travelClasses = null);
 				}
 
-				return travelClassesPromise; 
+				return travelClassesPromise;
 			},
 
-			getTravelClasses: function(callback) {
+			getTravelClasses: function (callback) {
 
 				if (travelClasses) return callback(null, travelClasses);
 

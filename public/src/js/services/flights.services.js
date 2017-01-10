@@ -1,5 +1,5 @@
 appServices.factory('flightsService', [
-	function() {
+	function () {
 
 		var query = {
 			roundTrip: true,
@@ -13,7 +13,7 @@ appServices.factory('flightsService', [
 			returnFlights = null;
 
 		//--------------------------------------------------------------------
-		var getForwardRouteQuery = function() {
+		var getForwardRouteQuery = function () {
 
 			var forwardQuery = {};
 			if (query.origin) forwardQuery.origin = query.origin;
@@ -23,20 +23,23 @@ appServices.factory('flightsService', [
 			return forwardQuery;
 		};
 
-		var forwardRoutePromiseParams = function(fullfill, reject) {
+		var forwardRoutePromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/flights',
 				method: 'GET',
 				data: getForwardRouteQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var forwardRoutePromise = null;
 
 		//--------------------------------------------------------------------
-		var getReturnRouteQuery = function() {
+		var getReturnRouteQuery = function () {
 
 			var returnQuery = {};
 			if (query.origin) returnQuery.destination = query.origin;
@@ -46,36 +49,39 @@ appServices.factory('flightsService', [
 			return returnQuery;
 		};
 
-		var returnRoutePromiseParams = function(fullfill, reject) {
+		var returnRoutePromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/flights',
 				method: 'GET',
 				data: getReturnRouteQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
 		var returnRoutePromise = null;
 
 		//--------------------------------------------------------------------
-		
+
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
+			getQuery: function () { return query; },
+			setQuery: function (q) {
 
-				query.roundTrip 	= q.roundTrip;
-				query.origin 		= q.origin 		|| null;
-				query.destination 	= q.destination	|| null;
-				query.departing 	= q.departing 	|| null;
-				query.returning 	= q.returning 	|| null;
+				query.roundTrip = q.roundTrip;
+				query.origin = q.origin || null;
+				query.destination = q.destination || null;
+				query.departing = q.departing || null;
+				query.returning = q.returning || null;
 				//--------------
 				forwardFlights = forwardRoutePromise = null;
 				returnFlights = returnRoutePromise = null;
 			},
 
-			getForwardRoutePromise: function() {
+			getForwardRoutePromise: function () {
 
 				if (!forwardRoutePromise || !forwardFlights) {
 
@@ -88,10 +94,10 @@ appServices.factory('flightsService', [
 
 				return forwardRoutePromise;
 			},
-			getReturnRoutePromise: function() {
+			getReturnRoutePromise: function () {
 
 				if (!query.roundTrip)
-					return Promise.resolve({result: null});
+					return Promise.resolve({ result: null });
 
 				if (!returnRoutePromise || !returnFlights) {
 
@@ -104,7 +110,7 @@ appServices.factory('flightsService', [
 
 				return returnRoutePromise;
 			},
-			getForwardFlights: function(callback) {
+			getForwardFlights: function (callback) {
 
 				if (forwardFlights) return callback(null, forwardFlights);
 
@@ -112,7 +118,7 @@ appServices.factory('flightsService', [
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
-			getReturnFlights: function(callback) {
+			getReturnFlights: function (callback) {
 				this.getReturnRoutePromise()
 					.then((response) => callback(null, response.result))
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));

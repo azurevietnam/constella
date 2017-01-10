@@ -78,6 +78,8 @@ appServices.factory('authenticationService', ['validateService', '$http', '$wind
 
                 promise
                     .then((response) => {
+                        console.log('Response:');
+                        console.log(response);
                         this.saveToken(response.token);
                         callback(null, response.data);
                     })

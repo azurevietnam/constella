@@ -1,5 +1,5 @@
 appServices.factory('bookingService', ['validateService',
-	function(validateService) {
+	function (validateService) {
 
 		var reviewingBookingId = null;
 		var config = {
@@ -10,11 +10,11 @@ appServices.factory('bookingService', ['validateService',
 				childrenCount: 0,
 				infantsCount: 0,
 				adults: [{
-								title: null,
-								firstName: null,
-								lastName: null,
-								dateOfBirth: null
-							}],
+					title: null,
+					firstName: null,
+					lastName: null,
+					dateOfBirth: null
+				}],
 				children: [],
 				infants: []
 			},
@@ -40,12 +40,12 @@ appServices.factory('bookingService', ['validateService',
 		};
 
 		//--------------------------------------------------------------------
-		var reallocatePassengers = function(passengers, realLength) {
+		var reallocatePassengers = function (passengers, realLength) {
 
 			if (passengers.length < realLength) {
 
 				var itemCount = realLength - passengers.length;
-				for(let i = 0; i < itemCount; ++i) {
+				for (let i = 0; i < itemCount; ++i) {
 					passengers.push({
 						title: null,
 						firstName: null,
@@ -53,37 +53,37 @@ appServices.factory('bookingService', ['validateService',
 						dateOfBirth: null
 					});
 				}
-	
+
 			} else if (passengers.length > realLength)
 				passengers.slice(0, realLength);
 		};
 
-		var evaluatePrice = function(route) {
+		var evaluatePrice = function (route) {
 			if (!route || !route.flight || !route.class) return 0;
 
 			var seatConfig = route.flight.seats.find((s) => s._class === route.class._id),
 				price = seatConfig.price;
 
 			var passengers = config.passengers,
-				passengersFactor = passengers.adultsCount + passengers.childrenCount*0.75;
-		
+				passengersFactor = passengers.adultsCount + passengers.childrenCount * 0.75;
+
 			return price * passengersFactor;
 		};
 
 		//--------------------------------------------------------------------
 		var service = {
-			getConfig: function() {
+			getConfig: function () {
 				return config;
 			},
 			//======================================================
-			revaluatePrice: function() {
+			revaluatePrice: function () {
 				var forwardPrice = evaluatePrice(config.forwardRoute),
 					returnPrice = evaluatePrice(config.returnRoute);
 
 				config.totalPrice = forwardPrice + returnPrice;
 			},
 			//======================================================
-			setBasicConfig: function(cfg) {
+			setBasicConfig: function (cfg) {
 				config.roundTrip = cfg.roundTrip;
 				config.promotion = cfg.promotion;
 
@@ -98,7 +98,7 @@ appServices.factory('bookingService', ['validateService',
 				}
 			},
 			//======================================================
-			setForwardRoute: function(route) {
+			setForwardRoute: function (route) {
 				if (route) {
 
 					config.forwardRoute.flight = route.flight || null;
@@ -107,7 +107,7 @@ appServices.factory('bookingService', ['validateService',
 					this.revaluatePrice();
 				}
 			},
-			setReturnRoute: function(route) {
+			setReturnRoute: function (route) {
 				if (route) {
 
 					config.returnRoute.flight = route.flight || null;
@@ -117,7 +117,7 @@ appServices.factory('bookingService', ['validateService',
 				}
 			},
 			//======================================================
-			updatePassengers: function(newPassengers) {
+			updatePassengers: function (newPassengers) {
 				for (let i = 0; i < newPassengers.adults.length; ++i) {
 					config.passengers.adults[i] = {
 						title: newPassengers.adults[i].title,
@@ -139,11 +139,11 @@ appServices.factory('bookingService', ['validateService',
 						title: newPassengers.infants[i].title,
 						firstName: newPassengers.infants[i].firstName,
 						lastName: newPassengers.infants[i].lastName,
-						dateOfBirth: new Date(newPassengers.infants [i].dateOfBirth.getTime())
+						dateOfBirth: new Date(newPassengers.infants[i].dateOfBirth.getTime())
 					};
 				}
 			},
-			updateContact: function(newContact) {
+			updateContact: function (newContact) {
 				config.contact.title = newContact.title || null;
 				config.contact.firstName = newContact.firstName || null;
 				config.contact.lastName = newContact.lastName || null;
@@ -154,9 +154,9 @@ appServices.factory('bookingService', ['validateService',
 				config.contact.note = newContact.note || null;
 			},
 			//======================================================
-			getReviewId: function() { return reviewingBookingId; },
-			setReviewId: function(rv) { reviewingBookingId = rv; },
-			getBooking: function(id, callback) {
+			getReviewId: function () { return reviewingBookingId; },
+			setReviewId: function (rv) { reviewingBookingId = rv; },
+			getBooking: function (id, callback) {
 
 				reviewingBookingId = id;
 
@@ -165,7 +165,10 @@ appServices.factory('bookingService', ['validateService',
 						url: '/api/bookings/' + reviewingBookingId,
 						method: 'GET',
 						success: fulfill,
-						error: reject
+						error: reject,
+						headers: {
+							Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+						}
 					});
 				});
 
@@ -174,7 +177,7 @@ appServices.factory('bookingService', ['validateService',
 					.catch((xhr, textStatus, errorThrown) => callback(xhr));
 			},
 			//======================================================
-			makeBooking: function(callback) {
+			makeBooking: function (callback) {
 
 				var requestBody = {};
 
@@ -209,7 +212,10 @@ appServices.factory('bookingService', ['validateService',
 						contentType: 'application/json',
 						data: JSON.stringify(requestBody),
 						success: fulfill,
-						error: reject
+						error: reject,
+						headers: {
+							Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+						}
 					});
 				});
 

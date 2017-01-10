@@ -1,7 +1,7 @@
 function getRandomInt(min, max) {
-  	min = Math.ceil(min);
-  	max = Math.floor(max);
-  	return Math.floor(Math.random() * (max - min)) + min;
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min)) + min;
 }
 function selectRandom(arr) {
 
@@ -9,11 +9,11 @@ function selectRandom(arr) {
 	return arr[index];
 }
 function formatNumberLength(num, length) {
-    var r = "" + num;
-    while (r.length < length) {
-        r = "0" + r;
-    }
-    return r;
+	var r = "" + num;
+	while (r.length < length) {
+		r = "0" + r;
+	}
+	return r;
 }
 function countDigits(num) {
 	var d = 0, temp = num;
@@ -26,7 +26,7 @@ function countDigits(num) {
 }
 
 function generateTask(index, origin, destination, departure, arrival) {
-	
+
 	let flight = {
 		_id: formatNumberLength(index, 8),
 		origin: origin,
@@ -42,9 +42,9 @@ function generateTask(index, origin, destination, departure, arrival) {
 			price: 1700000,
 			capacity: 50
 		}, {
-		  	_class: "M",
-		  	price: 1000000,
-		  	capacity: 200
+			_class: "M",
+			price: 1000000,
+			capacity: 200
 		}, {
 			_class: "N",
 			price: 700000,
@@ -60,41 +60,47 @@ function generateTask(index, origin, destination, departure, arrival) {
 		}]
 	};
 
-	return function() {
+	return function () {
 
 		$.ajax({
 			url: '/api/flights/BOT' + flight._id,
 			method: 'PUT',
 			data: flight,
 			succes: (response) => console.log('generated:', response.result),
-			error: (xhr, textStatus, errorThrown) => console.log(xhr.responseJSON)
-		});	
+			error: (xhr, textStatus, errorThrown) => console.log(xhr.responseJSON),
+			headers: {
+				Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+			}
+		});
 	};
 }
 
 
-var generateData = function(nDate) {
+var generateData = function (nDate) {
 	if (!async) return console.log('please install async');
 	if (!$) return console.log('please install jquery');
 
 	async.waterfall([
-		function(callback) {
+		function (callback) {
 
 			var promise = new Promise((fulfill, reject) => {
 				$.ajax({
 					url: '/api/locations',
 					method: 'GET',
 					success: fulfill,
-					error: reject
+					error: reject,
+					headers: {
+						Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+					}
 				});
 			});
 
 			promise
 				.then((response) => callback(null, response.result))
 				.catch((xhr, textStatus, errorThrown) => callback(xhr.responseJSON));
-			
+
 		},
-		function(locations, callback) {
+		function (locations, callback) {
 			var timeSeed = new Date(),
 				interval = 12, //hours
 				nLoop = 24 * nDate / interval;
@@ -123,8 +129,8 @@ var generateData = function(nDate) {
 
 			callback(null, tasks);
 		},
-		function(tasks, callback) {
-			
+		function (tasks, callback) {
+
 			tasks.forEach((task) => {
 				task();
 			});

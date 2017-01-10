@@ -1,24 +1,27 @@
 appServices.factory('travelClassesService', [
-	function() {
+	function () {
 
 		var query = {};
 		var travelClasses = null;
 
 		//--------------------------------------------------------------------
-		var getTravelClassesQuery = function() {
+		var getTravelClassesQuery = function () {
 
 			var query = {};
 
 			return query;
 		};
 
-		var travelClassesPromiseParams = function(fullfill, reject) {	
+		var travelClassesPromiseParams = function (fullfill, reject) {
 			$.ajax({
 				url: '/api/travelclasses',
 				method: 'GET',
 				data: getTravelClassesQuery(),
 				success: fullfill,
-				error: reject
+				error: reject,
+				headers: {
+					Authorization: 'Bearer ' + localStorage.getItem('currentUserToken')
+				}
 			});
 		};
 
@@ -27,13 +30,13 @@ appServices.factory('travelClassesService', [
 		//--------------------------------------------------------------------	
 		var service = {
 
-			getQuery: function() { return query; },
-			setQuery: function(q) {
+			getQuery: function () { return query; },
+			setQuery: function (q) {
 
 				travelClasses = travelClassesPromise = null;
 			},
 
-			getTravelClassesPromise: function() {
+			getTravelClassesPromise: function () {
 
 				if (!travelClassesPromise || !travelClasses) {
 
@@ -44,10 +47,10 @@ appServices.factory('travelClassesService', [
 						.catch((xhr, textStatus, errorThrown) => travelClasses = null);
 				}
 
-				return travelClassesPromise; 
+				return travelClassesPromise;
 			},
 
-			getTravelClasses: function(callback) {
+			getTravelClasses: function (callback) {
 
 				if (travelClasses) return callback(null, travelClasses);
 
